@@ -1,0 +1,74 @@
+ {
+    "event": {
+        "header": {
+            "namespace": "Alexa",
+            "name": "ChangeReport",
+            "messageId": "BOwFRWFl5Ni0hN3Xzof2",
+            "payloadVersion": "3"
+        },
+        "endpoint": {
+            "scope": {
+                "type": "BearerToken",
+                "token": "eyJraWQiOiJSbHFXZFBNeWsxY0Z5K0h3UTNCQWVSck1mXC9mTkJPTHRsUlZFQXF2bThidz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiIzOTg3MWRkYy1jMTcxLTQxOGUtODlmZC05YjhjMDVmNGE5OTEiLCJpc3MiOiJodHRwczpcL1wvY29nbml0by1pZHAudXMtZWFzdC0xLmFtYXpvbmF3cy5jb21cL3VzLWVhc3QtMV9jZ1B3S25YMlAiLCJ2ZXJzaW9uIjoyLCJjbGllbnRfaWQiOiIzdXE3OWlvZXM4ZG85czM1dnRqbmI0dmZnciIsIm9yaWdpbl9qdGkiOiIzM2I1NDI5Zi1jMjk5LTQxNmItOWY0OS0wNjg2YWE4MjBjZWQiLCJldmVudF9pZCI6IjQ2ZjU0Y2ZjLTVkOGItNGI1Mi1hNTU3LWFmZWQ5NWMyZjJiZiIsInRva2VuX3VzZSI6ImFjY2VzcyIsInNjb3BlIjoiYXdzLmNvZ25pdG8uc2lnbmluLnVzZXIuYWRtaW4gcGhvbmUgb3BlbmlkIHByb2ZpbGUgZW1haWwiLCJhdXRoX3RpbWUiOjE3MTYyOTYwMDUsImV4cCI6MTcxNjM4MjQwNSwiaWF0IjoxNzE2Mjk2MDA1LCJqdGkiOiIzZDZiMWIyYS01MDQ4LTQ5ODMtYjU5Zi1jN2I3YjY4YmM0YzUiLCJ1c2VybmFtZSI6InRlc3RBY2MifQ.OYkSIG9KHkvqcLuozMtm3aXKmAVTSzBEx8lWV7Zy8pQBVIEeQUlbjXxZ80cEzfzm5mt044H-rp6zexvazkJqfQpRzTLKEyO56Tvcq3RqrfERu3xTHHrK6jvH5kYwWBAHo8oek0oiJSymfjKr2fHKHGymtY6EewG2oH0_2ItEIEKDaI4tl_wDgaVCeRBqIBHTJL3FMsfzTeo-nEGenIRUwTKsRXLcWjKyDrf7eCRu1E3creNnwRxvp2bAMLpYrySlZ98kt8iMqKn0f0kx0m6sOtk347sm1tYKdeV7JpYXK7lD3ANhXC30U2GLboE9viWsSUM8zbgRCE_hhlrsjW39lQ"
+            },
+            "endpointId": "2402000002"
+        },
+        "payload": {
+            "change": {
+                "cause": {
+                    "type": "PERIODIC_POLL"
+                },
+                "properties": [
+                    {
+                        "namespace": "Alexa.ThermostatController",
+                        "name": "thermostatMode",
+                        "value": "HEAT",
+                        "timeOfSample": "2024-05-21T09:36:54.702Z",
+                        "uncertaintyInMilliseconds": 500
+                    },
+                    {
+                        "namespace": "Alexa.ThermostatController",
+                        "name": "targetSetpoint",
+                        "value": {
+                            "value": 85,
+                            "scale": "FAHRENHEIT"
+                        },
+                        "timeOfSample": "2024-05-21T09:36:54.702Z",
+                        "uncertaintyInMilliseconds": 500
+                    },
+                    {
+                        "namespace": "Alexa.TemperatureSensor",
+                        "name": "temperature",
+                        "value": {
+                            "value": 0,
+                            "scale": "FAHRENHEIT"
+                        },
+                        "timeOfSample": "2024-05-21T09:36:54.702Z",
+                        "uncertaintyInMilliseconds": 500
+                    },
+                    {
+                        "namespace": "Alexa.ModeController",
+                        "instance": "Shower.Temperature",
+                        "name": "mode",
+                        "value": "Temperature.PreHeat",
+                        "timeOfSample": "2024-05-21T09:36:54.702Z",
+                        "uncertaintyInMilliseconds": 500
+                    }
+                ]
+            }
+        }
+    },
+    "context": {
+        "properties": [
+            {
+                "namespace": "Alexa.EndpointHealth",
+                "name": "connectivity",
+                "value": {
+                    "value": "OK"
+                },
+                "timeOfSample": "2024-05-21T09:36:54.702Z",
+                "uncertaintyInMilliseconds": 500
+            }
+        ]
+    }
+}

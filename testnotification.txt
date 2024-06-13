@@ -1,0 +1,55 @@
+POST /v3/events HTTP/1.1
+Host: api.amazonalexa.com
+Authorization: Bearer access-token-from-Amazon
+Content-Type: application/json
+send to alexa response to trigger notification
+{
+    "event": {
+        "header": {
+            "namespace": "Alexa",
+            "name": "ChangeReport",
+            "messageId": "Unique identifier, preferably a version 4 UUID",
+            "payloadVersion": "3"
+        },
+        "endpoint": {
+            "scope": {
+                "type": "BearerToken",
+                "token": "access-token-from-Amazon"
+            },
+            "endpointId": "endpoint id of the light"
+        },
+        "payload": {
+            "change": {
+                "cause": {
+                    "type": "PERIODIC_POLL"
+                },
+                "properties": [{
+                    "namespace": "Alexa.PowerController",
+                    "name": "powerState",
+                    "value": "ON",
+                    "timeOfSample": "2022-02-03T16:20:50.52Z",
+                    "uncertaintyInMilliseconds": 500
+                }]
+            }
+        }
+    },
+    "context": {
+        "properties": [{
+                "namespace": "Alexa.BrightnessController",
+                "name": "brightness",
+                "value": 75,
+                "timeOfSample": "2022-02-03T16:20:50.52Z",
+                "uncertaintyInMilliseconds": 500
+            },
+            {
+                "namespace": "Alexa.EndpointHealth",
+                "name": "connectivity",
+                "value": {
+                    "value": "OK"
+                },
+                "timeOfSample": "2022-02-03T16:20:50.52Z",
+                "uncertaintyInMilliseconds": 500
+            }
+        ]
+    }
+}
