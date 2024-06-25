@@ -81,6 +81,7 @@ const alexaNotificationRefreshToken = async function () {
     }
   });
 };
+
 const sendAlexaNotification = async function (data) {
   console.log("sendAlexaNotification Data: ",JSON.stringify(data));
   return new Promise(async (resolve, reject) => {
@@ -122,6 +123,7 @@ const sendAlexaNotification = async function (data) {
     }
   });
 };
+
 const getAllDevicesFromAccount = async function (token) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -197,36 +199,31 @@ const getAllDevicesFromAccountWithUserId = async function (token) {
 const getDeviceQuery = async function (token, deviceId, userName, userId) {
   return new Promise(async (resolve, reject) => {
     try {
-      var request = require('request');
-      var options = {
-        'method': 'GET',
-        'url': 'http://api.powershower.net/api/iot/user/queryDeviceId?deviceId=' + deviceId,
-        'headers': {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token,
-          'Cookie': 'JSESSIONID=9AE322BBC2C49577B5E72DB279473C94'
-        },
-        body: JSON.stringify({
-          "username": userName,
-          "userId": userId
-        })
+        var request = require('request');
+        var options = {
+          'method': 'GET',
+          'url': 'http://api.powershower.net/api/iot/user/queryDeviceId?deviceId=' + deviceId,
+          'headers': {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + token,
+            'Cookie': 'JSESSIONID=9AE322BBC2C49577B5E72DB279473C94'
+          },
+          body: JSON.stringify({
+            "username": userName,
+            "userId": userId
+          })
+        };
 
-      };
-
-
-      request(options, async function (error, response) {
-        if (error) {
-          console.log("Error at getDeviceQuery: ", JSON.stringify(error));
-          return reject(error);
-        }
-        else {
-          console.log("getDeviceQuery response->" + response.body);
-          let responseData = await JSON.parse(response.body);
-          return resolve(responseData);
-        }
-
-
-      });
+        request(options, async function (error, response) {
+          if (error) {
+            console.log("Error at getDeviceQuery: ", JSON.stringify(error));
+            return reject(error);
+          } else {
+            console.log("getDeviceQuery response->" + response.body);
+            let responseData = await JSON.parse(response.body);
+            return resolve(responseData);
+          }
+        });
     } catch (error) {
       console.log("Error at getDeviceQuery: ", JSON.stringify(error));
       return reject(error);

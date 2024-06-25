@@ -58,7 +58,7 @@ const serviceToCheckShowerStatus  = async (statusAPIRequestDetails) => {
            const callNotificationSetup =  await new Promise(async (resolve) => {
                 await setTimeout(async () => {
                   resolve(Promise.all([ await powerShowerAPI.sendAlexaNotification(await getNotificationObject(notifyMode,token,endpoint_id,deviceMode, statusData)), powerShowerAPI.sendAlexaNotification(await getNotificationObject('Temperature.Blank',token,endpoint_id,deviceMode, statusData))]));
-                }, 60000); // 60000 milliseconds = 1 minute
+                }, 20000); // 60000 milliseconds = 1 minute
               });
 
             console.log("triggerNotification: ",JSON.stringify(callNotificationSetup));

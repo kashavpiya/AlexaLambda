@@ -378,6 +378,95 @@ exports.handler = async function (request, context) {
                 initiatedMode = "HEAT";
             }
 
+            const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+
+            const checkDeviceStatusUntilReady = async (deviceMetaData, maxRetries = 20, delay = 3000) => {
+                for (let i = 0; i < maxRetries; i++) {
+                    let deviceStatus = await getDeviceStatusWithRetry(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
+                    console.log("deviceStatus: ", JSON.stringify(deviceStatus));
+                    deviceStatus = await deviceStatus.payload;
+        
+                    if (deviceStatus.status === 3) {
+                        console.log("Shower is Ready");
+        
+                        // Make the announcement
+                        let ar = new AlexaResponse({
+                            "namespace": "Alexa",
+                            "name": "Response",
+                            "correlationToken": deviceMetaData.correlationToken,
+                            "token": deviceMetaData.access_token,
+                            "endpoint": {
+                                "scope": {
+                                    "type": "BearerToken",
+                                    "token": deviceMetaData.access_token
+                                },
+                                "endpointId": deviceMetaData.deviceId,
+                                "cookie": {}
+                            },
+                            "context": {
+                                "properties": [
+                                    {
+                                        "namespace": "Alexa.ThermostatController",
+                                        "name": "thermostatMode",
+                                        "value": "HEAT",
+                                        "timeOfSample": new Date().toISOString(),
+                                        "uncertaintyInMilliseconds": 500
+                                    },
+                                    {
+                                        "namespace": "Alexa.ThermostatController",
+                                        "name": "targetSetpoint",
+                                        "value": {
+                                            "value": deviceStatus.setTemp,
+                                            "scale": "FAHRENHEIT"
+                                        },
+                                        "timeOfSample": new Date().toISOString(),
+                                        "uncertaintyInMilliseconds": 500
+                                    },
+                                    {
+                                        "namespace": "Alexa.TemperatureSensor",
+                                        "name": "temperature",
+                                        "value": {
+                                            "value": deviceStatus.temp,
+                                            "scale": "FAHRENHEIT"
+                                        },
+                                        "timeOfSample": new Date().toISOString(),
+                                        "uncertaintyInMilliseconds": 500
+                                    }
+                                ]
+                            }
+                        });
+        
+                        console.log("Response initiated: Shower is Ready:", JSON.stringify(ar.get()));
+                        return ar.get();
+                    }
+        
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+        
+                console.log("Shower is not ready after maximum retries.");
+                return null;
+            };
+
+            const getDeviceStatusWithRetry = async (token, deviceId, username, userId, maxRetries = 6, interval = 1000) => {
+                let retries = 0;
+                let deviceStatus = await powerShowerAPI.getDeviceQuery(token, deviceId, username, userId);
+                let initialStatus = deviceStatus.payload.status;
+            
+                while (retries < maxRetries) {
+                    await delay(interval);
+                    deviceStatus = await powerShowerAPI.getDeviceQuery(token, deviceId, username, userId);
+            
+                    if (deviceStatus.payload.status !== initialStatus) {
+                        return deviceStatus;
+                    }
+            
+                    retries++;
+                }
+            
+                return deviceStatus;
+            };
+
             if (showerState != '') {
                 // call api command and set mode
                 sendCommand = await powerShowerAPI.sendShowerCommand(token, getdeviceTriggered.deviceId, showerState);
@@ -393,12 +482,12 @@ exports.handler = async function (request, context) {
                         listenStatus: showerState
 
                     }
-                    await delay(1000);
-                    let deviceStatus = await powerShowerAPI.getDeviceQuery(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
+                    
+                    let deviceStatus = await getDeviceStatusWithRetry(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
                     console.log("deviceStatus: ", JSON.stringify(deviceStatus));
                     deviceStatus = await deviceStatus.payload;
                     console.log("deviceStatus: ", JSON.stringify(deviceStatus));
-                    let deviceMode =initiatedMode; //deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO")
+                    let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO"); // initiatedMode; //
 
                     console.log("deviceMetaData before serviceToCheckShowerStatus:  ", JSON.stringify(deviceMetaData));
                     const callNotificationService = await serviceToCheckShowerStatus(deviceMetaData);
@@ -449,6 +538,7 @@ exports.handler = async function (request, context) {
                     // await ar.addPayloadEndpoint({ "endpointId": endpoint_id})
                     console.log("Response initiated:  heat mode:", JSON.stringify(ar.get()));
                     return ar.get();
+                  // ---->>> return await checkDeviceStatusUntilReady(deviceMetaData);
 
 
 
@@ -507,10 +597,11 @@ exports.handler = async function (request, context) {
                     username: getdeviceTriggered.username
 
                 }
-                let deviceStatus = await powerShowerAPI.getDeviceQuery(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
+                let deviceStatus = await getDeviceStatusWithRetry(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
+                //let deviceStatus = await powerShowerAPI.getDeviceQuery(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
                 console.log("deviceStatus: ", JSON.stringify(deviceStatus));
                 deviceStatus = await deviceStatus.payload;
-                let deviceMode = "ECO"; //deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO")
+                let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO"); //"ECO"; //
                 let ar = new AlexaResponse({
                     "namespace": "Alexa", "name": "Response", "correlationToken": correlationToken, "token": token,
                     "endpoint": {
@@ -574,10 +665,11 @@ exports.handler = async function (request, context) {
                     username: getdeviceTriggered.username
 
                 }
-                let deviceStatus = await powerShowerAPI.getDeviceQuery(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
+                let deviceStatus = await getDeviceStatusWithRetry(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
+//                let deviceStatus = await powerShowerAPI.getDeviceQuery(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
                 console.log("deviceStatus: ", JSON.stringify(deviceStatus));
                 deviceStatus = await deviceStatus.payload;
-                let deviceMode = "OFF"; // deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO")
+                let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO"); //"OFF"; // 
                 let ar = new AlexaResponse({
                     "namespace": "Alexa", "name": "Response", "correlationToken": correlationToken, "token": token, "endpoint": {
                         "scope": {
@@ -627,76 +719,88 @@ exports.handler = async function (request, context) {
 
 
             }
-            else if ((namespace === 'Alexa.ThermostatController' && name === "SetThermostatMode" && payload.thermostatMode.value === "HEAT") || (namespace === 'Alexa.ModeController' && name === "SetMode" && payload.mode === "Temperature.PreHeat")) {
+            else if ((namespace === 'Alexa.ThermostatController' && name === "SetThermostatMode" && payload.thermostatMode.value === "HEAT") || 
+         (namespace === 'Alexa.ModeController' && name === "SetMode" && payload.mode === "Temperature.PreHeat")) {
 
-                // call api command and set preheat mode
-                sendCommand = await powerShowerAPI.sendShowerCommand(token, getdeviceTriggered.deviceId, "SHOWERPREHEAT");
-                console.log("called sendCommand: ", JSON.stringify(sendCommand));
-                if (sendCommand.message != undefined && sendCommand.message == "Send ShowerControl Successfully") {
-                    // sent command successfully
-                    let deviceMetaData = {
-                        correlationToken: request.directive.header.correlationToken,
-                        access_token: token,
-                        deviceId: getdeviceTriggered.deviceId,
-                        userId: getdeviceTriggered.userId,
-                        username: getdeviceTriggered.username
 
-                    }
-                    let deviceStatus = await powerShowerAPI.getDeviceQuery(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
-                    console.log("deviceStatus: ", JSON.stringify(deviceStatus));
-                    deviceStatus = await deviceStatus.payload;
-                    console.log("deviceStatus: ", JSON.stringify(deviceStatus));
-                    let deviceMode = "HEAT"; //deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO")
-                    console.log("deviceMetaData before serviceToCheckShowerStatus:  ", JSON.stringify(deviceMetaData));
-                    const callNotificationService = await serviceToCheckShowerStatus(deviceMetaData);
-                    console.log("callNotificationService return response: ", JSON.stringify(callNotificationService));
-                    //return callNotificationService;
-                    let ar = await new AlexaResponse({
-                        "namespace": "Alexa", "name": "Response", "correlationToken": correlationToken, "token": token, "endpoint": {
-                            "scope": {
-                                "type": "BearerToken",
-                                "token": token
-                            },
-                            "endpointId": endpoint_id,
-                            "cookie": {}
+
+    // Call API command and set preheat mode
+    sendCommand = await powerShowerAPI.sendShowerCommand(token, getdeviceTriggered.deviceId, "SHOWERPREHEAT");
+    console.log("called sendCommand: ", JSON.stringify(sendCommand));
+
+    if (sendCommand.message !== undefined && sendCommand.message === "Send ShowerControl Successfully") {
+        // Command sent successfully
+        let deviceMetaData = {
+            correlationToken: request.directive.header.correlationToken,
+            access_token: token,
+            deviceId: getdeviceTriggered.deviceId,
+            userId: getdeviceTriggered.userId,
+            username: getdeviceTriggered.username
+        };
+
+        let deviceStatus = await getDeviceStatusWithRetry(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
+        console.log("deviceStatus: ", JSON.stringify(deviceStatus));
+        deviceStatus = await deviceStatus.payload;
+        console.log("deviceStatus: ", JSON.stringify(deviceStatus));
+
+        let deviceMode = deviceStatus.status === 0 ? "OFF" :
+                         deviceStatus.status === 1 ? "ECO" :
+                         deviceStatus.status === 2 ? "HEAT" : "ECO"; //"HEAT";
+
+        console.log("deviceMetaData before serviceToCheckShowerStatus:  ", JSON.stringify(deviceMetaData));
+        const callNotificationService = await serviceToCheckShowerStatus(deviceMetaData);
+        console.log("callNotificationService return response: ", JSON.stringify(callNotificationService));
+
+        let ar = new AlexaResponse({
+            "namespace": "Alexa",
+            "name": "Response",
+            "correlationToken": correlationToken,
+            "token": token,
+            "endpoint": {
+                "scope": {
+                    "type": "BearerToken",
+                    "token": token
+                },
+                "endpointId": endpoint_id,
+                "cookie": {}
+            },
+            "context": {
+                "properties": [
+                    {
+                        "namespace": "Alexa.ThermostatController",
+                        "name": "thermostatMode",
+                        "value": deviceMode,
+                        "timeOfSample": new Date().toISOString(),
+                        "uncertaintyInMilliseconds": 500
+                    },
+                    {
+                        "namespace": "Alexa.ThermostatController",
+                        "name": "targetSetpoint",
+                        "value": {
+                            "value": deviceStatus.setTemp,
+                            "scale": "FAHRENHEIT"
                         },
-                        "context": {
-                            "properties": [
-                                {
-                                    "namespace": "Alexa.ThermostatController",
-                                    "name": "thermostatMode",
-                                    "value": deviceMode,
-                                    "timeOfSample": await TOS,
-                                    "uncertaintyInMilliseconds": 500
-                                },
-                                {
-                                    "namespace": "Alexa.ThermostatController",
-                                    "name": "targetSetpoint",
-                                    "value": {
-                                        "value": deviceStatus.setTemp,
-                                        "scale": "FAHRENHEIT"
-                                    },
-                                    "timeOfSample": await TOS,
-                                    "uncertaintyInMilliseconds": 500
-                                },
-                                {
-                                    "namespace": "Alexa.TemperatureSensor",
-                                    "name": "temperature",
-                                    "value": {
-                                        "value": deviceStatus.temp,
-                                        "scale": "FAHRENHEIT"
-                                    },
-                                    "timeOfSample": await TOS,
-                                    "uncertaintyInMilliseconds": 500
-                                }
-                            ]
-                        }
-                    })
+                        "timeOfSample": new Date().toISOString(),
+                        "uncertaintyInMilliseconds": 500
+                    },
+                    {
+                        "namespace": "Alexa.TemperatureSensor",
+                        "name": "temperature",
+                        "value": {
+                            "value": deviceStatus.temp,
+                            "scale": "FAHRENHEIT"
+                        },
+                        "timeOfSample": new Date().toISOString(),
+                        "uncertaintyInMilliseconds": 500
+                    }
+                ]
+            }
+        });
 
-                    // await ar.addPayloadEndpoint({ "endpointId": endpoint_id})
-                    console.log("Response initiated:  heat mode:", JSON.stringify(ar.get()));
-                    return ar.get();
-
+        console.log("Response initiated: heat mode:", JSON.stringify(ar.get()));
+        ar.get();
+        return await checkDeviceStatusUntilReady(deviceMetaData);
+    
 
 
                 }
@@ -771,10 +875,10 @@ exports.handler = async function (request, context) {
                 deviceId: getdeviceTriggered.deviceId,
                 userId: getdeviceTriggered.userId,
                 username: getdeviceTriggered.username
-
             }
             console.log("ReportState3: ", JSON.stringify(deviceMetaData));
-            let deviceStatus = await powerShowerAPI.getDeviceQuery(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
+            let deviceStatus = await getDeviceStatusWithRetry(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
+//            let deviceStatus = await powerShowerAPI.getDeviceQuery(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
             console.log("deviceStatus: ", JSON.stringify(deviceStatus));
             deviceStatus = await deviceStatus.payload;
             let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO")
@@ -851,5 +955,4 @@ exports.handler = async function (request, context) {
 
 
 };
-
 
