@@ -798,8 +798,8 @@ exports.handler = async function (request, context) {
         });
 
         console.log("Response initiated: heat mode:", JSON.stringify(ar.get()));
-        ar.get();
-        return await checkDeviceStatusUntilReady(deviceMetaData);
+        return ar.get();
+        //return await checkDeviceStatusUntilReady(deviceMetaData);
     
 
 
