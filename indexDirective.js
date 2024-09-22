@@ -364,9 +364,9 @@ exports.handler = async function (request, context) {
             let sendCommand = {};
             let showerState = '';
             let initiatedMode = '';
-            if ((namespace === 'Alexa.ThermostatController' && name === "SetThermostatMode" && payload.thermostatMode.value === "ECO") || (namespace === 'Alexa.ModeController' && name === "SetMode" && payload.mode === "Temperature.On")) {
+            if ((namespace === 'Alexa.ThermostatController' && name === "SetThermostatMode" && payload.thermostatMode.value === "ON") || (namespace === 'Alexa.ModeController' && name === "SetMode" && payload.mode === "Temperature.On")) {
                 showerState = 'SHOWERON';
-                initiatedMode = "ECO";
+                initiatedMode = "ON";
             }
             if ((namespace === 'Alexa.ThermostatController' && name === "SetThermostatMode" && payload.thermostatMode.value === "OFF") || (namespace === 'Alexa.ModeController' && name === "SetMode" && payload.mode === "Temperature.Off")) {
                 showerState = 'SHOWEROFF';
@@ -487,7 +487,7 @@ exports.handler = async function (request, context) {
                     console.log("deviceStatus: ", JSON.stringify(deviceStatus));
                     deviceStatus = await deviceStatus.payload;
                     console.log("deviceStatus: ", JSON.stringify(deviceStatus));
-                    let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO"); // initiatedMode; //
+                    let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ON" : deviceStatus.status == 2 ? "HEAT" : "ON"); // initiatedMode; //
 
                     console.log("deviceMetaData before serviceToCheckShowerStatus:  ", JSON.stringify(deviceMetaData));
                     const callNotificationService = await serviceToCheckShowerStatus(deviceMetaData);
@@ -585,7 +585,7 @@ exports.handler = async function (request, context) {
             }
 
 
-            if ((namespace === 'Alexa.ThermostatController' && name === "SetThermostatMode" && payload.thermostatMode.value === "ECO") || (namespace === 'Alexa.ModeController' && name === "SetMode" && payload.mode === "Temperature.On")) {
+            if ((namespace === 'Alexa.ThermostatController' && name === "SetThermostatMode" && payload.thermostatMode.value === "ON") || (namespace === 'Alexa.ModeController' && name === "SetMode" && payload.mode === "Temperature.On")) {
                 sendCommand = await powerShowerAPI.sendShowerCommand(token, getdeviceTriggered.deviceId, "SHOWERON");
                 console.log("sendCommand.message: ", sendCommand.message);
                 console.log("called sendCommand: ", JSON.stringify(sendCommand));
@@ -601,7 +601,7 @@ exports.handler = async function (request, context) {
                 //let deviceStatus = await powerShowerAPI.getDeviceQuery(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
                 console.log("deviceStatus: ", JSON.stringify(deviceStatus));
                 deviceStatus = await deviceStatus.payload;
-                let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO"); //"ECO"; //
+                let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ON" : deviceStatus.status == 2 ? "HEAT" : "ON"); //"ON"; //
                 let ar = new AlexaResponse({
                     "namespace": "Alexa", "name": "Response", "correlationToken": correlationToken, "token": token,
                     "endpoint": {
@@ -669,7 +669,7 @@ exports.handler = async function (request, context) {
 //                let deviceStatus = await powerShowerAPI.getDeviceQuery(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
                 console.log("deviceStatus: ", JSON.stringify(deviceStatus));
                 deviceStatus = await deviceStatus.payload;
-                let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO"); //"OFF"; // 
+                let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ON" : deviceStatus.status == 2 ? "HEAT" : "ON"); //"OFF"; // 
                 let ar = new AlexaResponse({
                     "namespace": "Alexa", "name": "Response", "correlationToken": correlationToken, "token": token, "endpoint": {
                         "scope": {
@@ -744,8 +744,8 @@ exports.handler = async function (request, context) {
         console.log("deviceStatus: ", JSON.stringify(deviceStatus));
 
         let deviceMode = deviceStatus.status === 0 ? "OFF" :
-                         deviceStatus.status === 1 ? "ECO" :
-                         deviceStatus.status === 2 ? "HEAT" : "ECO"; //"HEAT";
+                         deviceStatus.status === 1 ? "ON" :
+                         deviceStatus.status === 2 ? "HEAT" : "ON"; //"HEAT";
 
         console.log("deviceMetaData before serviceToCheckShowerStatus:  ", JSON.stringify(deviceMetaData));
         const callNotificationService = await serviceToCheckShowerStatus(deviceMetaData);
@@ -881,7 +881,7 @@ exports.handler = async function (request, context) {
 //            let deviceStatus = await powerShowerAPI.getDeviceQuery(deviceMetaData.access_token, deviceMetaData.deviceId, deviceMetaData.username, deviceMetaData.userId);
             console.log("deviceStatus: ", JSON.stringify(deviceStatus));
             deviceStatus = await deviceStatus.payload;
-            let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ECO" : deviceStatus.status == 2 ? "HEAT" : "ECO")
+            let deviceMode = deviceStatus.status == 0 ? "OFF" : (deviceStatus.status == 1 ? "ON" : deviceStatus.status == 2 ? "HEAT" : "ON")
             console.log("deviceMetaData before serviceToCheckShowerStatus:  ", JSON.stringify(deviceMetaData));
 
             console.log("Entered StateReport2");
